@@ -1,0 +1,603 @@
+﻿{
+  "created": "1767926733684",
+  "updated": "1767926733684",
+  "name": "营销v2.0_邮件模板生成",
+  "description": "",
+  "tags": [],
+  "pieces": [
+    "@activepieces/piece-webhook",
+    "@activepieces/piece-mysql",
+    "@activepieces/piece-http",
+    "@activepieces/piece-subflows",
+    "@activepieces/piece-flow-helper"
+  ],
+  "template": {
+    "displayName": "营销v2.0_邮件模板生成",
+    "trigger": {
+      "name": "trigger",
+      "valid": true,
+      "displayName": "Catch Webhook",
+      "type": "PIECE_TRIGGER",
+      "settings": {
+        "propertySettings": {
+          "authType": {
+            "type": "MANUAL"
+          },
+          "authFields": {
+            "type": "MANUAL",
+            "schema": {}
+          },
+          "liveMarkdown": {
+            "type": "MANUAL"
+          },
+          "syncMarkdown": {
+            "type": "MANUAL"
+          },
+          "testMarkdown": {
+            "type": "MANUAL"
+          }
+        },
+        "pieceName": "@activepieces/piece-webhook",
+        "pieceVersion": "0.1.25",
+        "input": {
+          "authType": "none",
+          "authFields": {}
+        },
+        "sampleData": {},
+        "triggerName": "catch_webhook"
+      },
+      "nextAction": {
+        "name": "step_4",
+        "skip": true,
+        "type": "CODE",
+        "valid": true,
+        "settings": {
+          "input": {
+            "isTestMessage": "{{trigger['body']['options']['testMessage']}}",
+            "emailTemplateRoundVersionId": "{{trigger['body']['payload']['emailTemplateRoundVersionId']}}"
+          },
+          "sampleData": {},
+          "sourceCode": {
+            "code": "export const code = async (inputs) => {\n  const {isTestMessage, emailTemplateRoundVersionId} = inputs;\n  return isTestMessage \n    ? `\n       SELECT * \n       FROM zoe_ai_email_template_round_version \n       WHERE id = ${emailTemplateRoundVersionId}\n         AND status = 0 \n         AND del_flag = 0 \n         ORDER BY create_time DESC \n         LIMIT 1\n      `\n    : `\n       SELECT * \n       FROM zoe_ai_email_template_round_version \n       WHERE id = (\n         select current_version_id \n         from zoe_ai_email_template_round \n         where template_id = ? \n           and round_order = ? \n           and round_type = 0\n           and del_time = 0\n       ) \n         AND status = 1\n         and del_flag = 0\n      `;\n};",
+            "packageJson": "{}"
+          },
+          "errorHandlingOptions": {
+            "retryOnFailure": {
+              "value": false
+            },
+            "continueOnFailure": {
+              "value": false
+            }
+          }
+        },
+        "nextAction": {
+          "name": "step_3",
+          "skip": true,
+          "type": "PIECE",
+          "valid": true,
+          "settings": {
+            "input": {
+              "args": [
+                "{{trigger['body']['payload']['emailTemplateId']}}",
+                "{{trigger['body']['payload']['seq']}}"
+              ],
+              "auth": "{{connections['xEIAN9RbU6OO2UNnrR3yT']}}",
+              "query": "SELECT * \n       FROM zoe_ai_email_template_round_version \n       WHERE id = (\n         select current_version_id \n         from zoe_ai_email_template_round \n         where template_id = ? \n           and round_order = ? \n           and round_type = 0\n           and del_time = 0\n       ) \n         AND status = 1\n         and del_flag = 0"
+            },
+            "pieceName": "@activepieces/piece-mysql",
+            "actionName": "execute_query",
+            "sampleData": {},
+            "pieceVersion": "0.1.15",
+            "propertySettings": {
+              "args": {
+                "type": "MANUAL"
+              },
+              "auth": {
+                "type": "MANUAL"
+              },
+              "query": {
+                "type": "MANUAL"
+              }
+            },
+            "errorHandlingOptions": {
+              "retryOnFailure": {
+                "value": false
+              },
+              "continueOnFailure": {
+                "value": false
+              }
+            }
+          },
+          "nextAction": {
+            "name": "step_5",
+            "skip": false,
+            "type": "PIECE",
+            "valid": true,
+            "settings": {
+              "input": {
+                "url": "https://stage.qianxing-ai.com/api/customer/sales_brain/getConfirmedSalesBrainEntityListForUser",
+                "body": {},
+                "method": "GET",
+                "headers": {
+                  "X-Caller": "activepieces",
+                  "Authorization": "{{process.env.BACKEND_CALLBACK_AUTH}}"
+                },
+                "authType": "NONE",
+                "body_type": "none",
+                "use_proxy": false,
+                "authFields": {},
+                "queryParams": {
+                  "userId": "{{trigger['body']['messageGenerateReqDTO']['payload']['userId']}}"
+                },
+                "proxy_settings": {},
+                "response_is_binary": false
+              },
+              "pieceName": "@activepieces/piece-http",
+              "actionName": "send_request",
+              "sampleData": {},
+              "pieceVersion": "0.8.7",
+              "propertySettings": {
+                "url": {
+                  "type": "MANUAL"
+                },
+                "body": {
+                  "type": "MANUAL",
+                  "schema": {}
+                },
+                "method": {
+                  "type": "MANUAL"
+                },
+                "headers": {
+                  "type": "MANUAL"
+                },
+                "timeout": {
+                  "type": "MANUAL"
+                },
+                "authType": {
+                  "type": "MANUAL"
+                },
+                "body_type": {
+                  "type": "MANUAL"
+                },
+                "use_proxy": {
+                  "type": "MANUAL"
+                },
+                "authFields": {
+                  "type": "MANUAL",
+                  "schema": {}
+                },
+                "failureMode": {
+                  "type": "MANUAL"
+                },
+                "queryParams": {
+                  "type": "MANUAL"
+                },
+                "proxy_settings": {
+                  "type": "MANUAL",
+                  "schema": {}
+                },
+                "response_is_binary": {
+                  "type": "MANUAL"
+                }
+              },
+              "errorHandlingOptions": {
+                "retryOnFailure": {
+                  "value": false
+                },
+                "continueOnFailure": {
+                  "value": false
+                }
+              }
+            },
+            "nextAction": {
+              "name": "step_7",
+              "skip": false,
+              "type": "CODE",
+              "valid": true,
+              "settings": {
+                "input": {
+                  "sellerContact": "{{trigger['body']['messageGenerateReqDTO']['sellerInfo']['contact']}}",
+                  "sellerWebsite": "{{trigger['body']['messageGenerateReqDTO']['sellerInfo']['baseInfo']['website']}}",
+                  "sellerCompanyName": "{{trigger['body']['messageGenerateReqDTO']['sellerInfo']['baseInfo']['companyName']}}",
+                  "sellerMainProduct": "{{trigger['body']['messageGenerateReqDTO']['sellerInfo']['baseInfo']['mainProduct']}}",
+                  "sellerCompanyIntro": "{{trigger['body']['messageGenerateReqDTO']['sellerInfo']['baseInfo']['companyIntro']}}"
+                },
+                "sampleData": {},
+                "sourceCode": {
+                  "code": "export const code = async (inputs) => {\n  return {\n    sellerCompanyName: inputs.sellerCompanyName,\nsellerCompanyIntro:inputs.sellerCompanyIntro,\n  sellerMainProduct:inputs.sellerMainProduct,\n    sellerWebsite:inputs.sellerWebsite\n  }\n};",
+                  "packageJson": "{}"
+                },
+                "errorHandlingOptions": {
+                  "retryOnFailure": {
+                    "value": false
+                  },
+                  "continueOnFailure": {
+                    "value": false
+                  }
+                }
+              },
+              "nextAction": {
+                "name": "step_1",
+                "skip": false,
+                "type": "CODE",
+                "valid": true,
+                "settings": {
+                  "input": {
+                    "chat": "{{trigger['body']['chatContent']}}",
+                    "marketinfo_json_data": "{{step_5['body']['data']}}",
+                    "sellerscompanybaseinfo_json_data": "{{step_7}}"
+                  },
+                  "sampleData": {},
+                  "sourceCode": {
+                    "code": "export const code = async (inputs: any) => {\n  const {marketinfo_json_data,sellerscompanybaseinfo_json_data,chat} = inputs;\n  return `\n# Role\n你是一位 B2B 商务邮件结构设计专家，\n擅长在严格事实与合规约束下，\n为不同业务场景设计【自然、有情商、可规模化复用的邮件模版结构】。\n\n你不预设邮件类型。\n邮件可能是（但不限于）：\n- 营销 / 冷启动 / 客户触达\n- 老客户跟进\n- 节日或问候类沟通\n- 关系维护\n- 信息同步或业务通知\n- 其他由用户明确说明的商务沟通场景\n\n邮件的具体场景、目的与使用语境，\n**完全以 User Input 为准。**\n\n你的任务不是直接写一封完整邮件，\n而是输出一个【可被程序安全拼装的邮件模版结构】，\n用于后续根据不同客户与场景进行个性化生成。\n\n---\n\n# 全局语言强制规则（最高优先级）\n\n- 本 Prompt 的所有输出内容 **必须使用中文**\n- 包括但不限于：\n  - Type 1 的邮件正文\n  - Type 2 的策略指令\n  - 标题策略、钩子策略、执行说明\n- 所有内容必须符合自然商务沟通习惯\n\n---\n\n# 核心生成原则（优先级从高到低）\n\n1. 场景匹配  \n   - 首先理解 User Input 所描述的邮件目的\n   - 邮件结构与语气必须服务于该场景\n   - 不强行套用冷启动或销售模板\n\n2. 情商优先  \n   - 邮件应读起来像一个会说话、懂分寸的业务人\n   - 自然、得体，不过分防御\n   - 减少“自我约束声明”，把尊重藏在语气中\n\n3. 事实安全  \n   - 不捏造、不推断、不夸大我方事实\n   - 所有我方客观信息仅来自 Knowledge Base 或 User Input\n\n---\n\n# Knowledge Base（我方事实唯一来源）\n\n以下信息为我方企业及市场相关的基础事实，\n是所有“我方客观描述”的唯一来源。\n\n## marketinfo_json_data\n用于存储市场或行业层面的通用信息，\n如公司优势、解决方案方向等（仅限其中明确写明的内容）。\n\n## sellerscompanybaseinfo_json_data\n卖方企业基础信息：\n- sellerCompanyName\n- sellerCompanyIntro（仅限其中明确写明的事实）\n- sellerMainProduct（若为 null，视为未知，不得据此生成产品细节）\n- sellerWebsite\n\n除以上信息外，不存在任何其他我方已知事实。\n不得基于常识、行业惯例或参考示例进行补充或推断。\n\n---\n\n# Buyer Context（目标客户上下文）\n\n目标客户信息仅用于：\n- 决定称呼方式\n- 调整语气与表达顺序\n- 帮助生成更贴近对方角色的沟通切入方式\n\n目标客户信息不得被反向用于证明我方能力、经验或优势。\n\n---\n\n# Strict Boundaries（事实与合规）\n\n1. 禁止捏造我方事实  \n   任何关于我方的描述（产品、能力、经验、认证、案例、服务等）\n   必须能在 Knowledge Base 或 User Input 中找到明确依据。\n\n2. 禁止过度承诺  \n   若 Knowledge Base 未明确提及交付周期、价格优势、样品政策、响应时效，\n   一律不得出现。\n\n3. 禁止基于目标客户信息反推我方能力  \n   不得因对方规模、行业、市场而推断我方“一定具备”某种能力。\n\n4. Type 2 不得引入新的我方事实假设  \n   策略段只能描述“如何生成内容”，不得隐含新增事实。\n\n---\n\n# Variable Rules（变量使用规则）\n\n仅允许使用以下 5 个变量：\n\n- [[Target_Name]]\n- [[Target_Title]]\n- [[Target_Company]]\n- [[My_Name]]\n- [[My_Title]]\n\n禁止引入任何其他变量形式。\n\n---\n\n# Processing Logic（核心逻辑）\n\n你需要先从 User Input 中判断【邮件场景类型】，\n再决定邮件的整体结构、语气与段落功能。\n\n重要说明：\n- 并非所有邮件都需要标题\n- 是否需要标题、是否营销、是否放钩子，完全由场景决定\n- **当需要标题时，标题优先使用 Type 2（AI 生成策略段）**\n\n---\n\n## 场景判断规则\n\n如果 User Input 明确或隐含以下意图之一：\n- 推广产品或服务\n- 寻找合作机会\n- 开发新客户\n- 营销或触达潜在客户\n\n则该邮件视为【营销类邮件】。\n\n否则，视为【非营销类商务邮件】。\n\n---\n\n## 针对【营销类邮件】的强制规则（重点）\n\n### 一、标题生成规则\n\n- 营销类邮件 **如包含标题，标题必须为 Type 2**\n- 标题不得直接输出具体文案\n- 必须以“策略指令”的形式输出，用于指导后续 AI 生成标题\n- 策略指令 **必须使用中文完整描述**\n\n---\n\n### 二、钩子定义（原则级，不给示例）\n\n钩子不是卖点、不是介绍、不是结论，\n而是一个用于引导继续阅读的切入口。\n\n---\n\n### 三、钩子生成的策略性约束（必须同时满足）\n\n在生成标题或正文第一段钩子时，必须遵守以下规则：\n\n1. 关注点在对方  \n   - 句子重心放在对方的角色、判断或潜在关注点  \n   - 避免以“我们 / 我方 / 合作介绍”为主语  \n\n2. 语义为“不确定 + 试探”  \n   - 使用“想确认 / 不确定是否相关 / 一个想法 / 一个小问题”等中文语义  \n   - 避免确定性判断或结论式表达  \n\n3. 信息密度刻意降低  \n   - 不解释背景、不展开说明  \n   - 钩子只负责制造继续阅读的动机  \n\n4. 钩子阶段不得包含我方事实  \n   - 所有我方事实必须后置  \n   - 钩子仅用于吸引注意力  \n\n---\n\n### 四、钩子优先级规则\n\n在营销类邮件中，钩子的优先级高于：\n- 自我介绍\n- 公司背景\n- 优势或认证说明\n- 合规或事实陈述\n\n---\n\n## 针对【非营销类邮件】的规则\n\n- 不强制使用钩子\n- 节日 / 问候 / 关系维护类邮件允许情绪表达优先\n- 结构可更松弛，弱化模板感\n\n---\n\n## 段落类型说明\n\n### Type 1（固定段落）\n- 输出具体邮件正文文本\n- 可包含我方事实（需可溯源）\n- 必须使用自然、克制的中文商务表达\n\n### Type 2（策略段落）\n- 不输出邮件正文\n- 仅输出“如何生成该段内容”的中文策略说明\n- 描述需让不了解系统的人也能理解\n- 严禁使用英文关键词、缩写或系统黑话\n\n---\n\n## 通用语气与情商规则\n\n- 避免反复使用“打扰、尽量、如果不相关请忽略”等自我压低表达\n- 不显得紧张、不像合规说明\n- 更像一次平等、自然的中文商务沟通\n- 允许简短句、有节奏感\n- 营销场景中可主动，但不得压迫\n\n---\n\n## 信息不足处理规则\n\n如果 Knowledge Base 或 User Input\n不足以支撑安全、可验证的 Type 1 内容：\n- 该段落必须降级为 Type 2\n- 不得为了完整性而编造内容\n\n---\n\n# Email Deliverability Rule（通用）\n\n- 避免明显群发或模板化语气\n- 不制造紧迫感\n- 尊重对方时间与判断权\n- 钩子应基于“相关性”，而非刺激性词汇\n\n\n---\n\n# Output Format（严格）\n\n仅输出 JSON，不得包含任何解释性文字。\n**所有 content 字段必须使用中文表达。**\n\n\\`\\`\\`json\n{\n  \"template_structure\": [\n    {\n      \"sectionId\": 1,\n      \"type\": 2,\n      \"content\": \"策略：基于邮件场景与目标客户角色，从对方视角出发，生成一个信息量较低、语气试探、带有不确定性的标题，用于引导对方产生打开邮件的兴趣。\",\n      \"fact_sources\": [\"buyer_context\"]\n    }\n  ]\n}\n\n# Knowledge Base 内容\n[MARKET_INFO_START]\n${JSON.stringify(marketinfo_json_data,null,2)}[MARKET_INFO_END]\n\n[COMPANY_BASE_INFO_START]\n${JSON.stringify(sellerscompanybaseinfo_json_data,null,2)}\n[COMPANY_BASE_INFO_END]\n`\n};\n\n",
+                    "packageJson": "{}"
+                  },
+                  "errorHandlingOptions": {
+                    "retryOnFailure": {
+                      "value": false
+                    },
+                    "continueOnFailure": {
+                      "value": false
+                    }
+                  }
+                },
+                "nextAction": {
+                  "name": "step_2",
+                  "type": "PIECE",
+                  "valid": true,
+                  "settings": {
+                    "input": {
+                      "flow": {
+                        "externalId": "Uc6vykNwoFL6g3uLZmz30",
+                        "exampleData": {
+                          "sampleData": {
+                            "body": {
+                              "input": [
+                                {
+                                  "role": "user",
+                                  "content": "今日上海的天气怎么样"
+                                }
+                              ],
+                              "reasoning": {
+                                "effort": "minimal"
+                              }
+                            },
+                            "model": "gpt-5-mini",
+                            "jsonType": true
+                          }
+                        }
+                      },
+                      "mode": "advanced",
+                      "flowProps": {
+                        "payload": {
+                          "body": {
+                            "input": [
+                              {
+                                "role": "system",
+                                "content": "{{step_1}}"
+                              },
+                              {
+                                "role": "user",
+                                "content": "{{trigger['body']['chatContent']}}"
+                              }
+                            ],
+                            "reasoning": {
+                              "effort": "medium"
+                            }
+                          },
+                          "model": "gpt-5.1",
+                          "jsonType": true
+                        }
+                      },
+                      "waitForResponse": true
+                    },
+                    "pieceName": "@activepieces/piece-subflows",
+                    "actionName": "callFlow",
+                    "sampleData": {},
+                    "pieceVersion": "0.4.7",
+                    "propertySettings": {
+                      "flow": {
+                        "type": "MANUAL"
+                      },
+                      "mode": {
+                        "type": "MANUAL"
+                      },
+                      "flowProps": {
+                        "type": "MANUAL",
+                        "schema": {
+                          "payload": {
+                            "type": "JSON",
+                            "required": true,
+                            "description": "Provide the data to be passed to the flow",
+                            "displayName": "Payload",
+                            "defaultValue": {
+                              "body": {
+                                "input": [
+                                  {
+                                    "role": "user",
+                                    "content": "今日上海的天气怎么样"
+                                  }
+                                ],
+                                "reasoning": {
+                                  "effort": "minimal"
+                                }
+                              },
+                              "model": "gpt-5-mini",
+                              "jsonType": true
+                            }
+                          }
+                        }
+                      },
+                      "waitForResponse": {
+                        "type": "MANUAL"
+                      }
+                    },
+                    "errorHandlingOptions": {
+                      "retryOnFailure": {
+                        "value": false
+                      },
+                      "continueOnFailure": {
+                        "value": false
+                      }
+                    }
+                  },
+                  "nextAction": {
+                    "name": "step_6",
+                    "type": "PIECE",
+                    "valid": true,
+                    "settings": {
+                      "input": {
+                        "url": "http://111.229.132.67/api/v2/flow/previewEmailTemplate",
+                        "body": {
+                          "data": "{\n  \"step\": 1,\n  \"userId\": \"{{trigger['body']['messageGenerateReqDTO']['payload']['userId']}}\",\n  \"content\": \"\",\n  \"subject\": \"\",\n  \"modelAnalysis\": \"\",\n  \"conversationId\": \"{{trigger['body']['messageGenerateReqDTO']['payload']['conversationId']}}\",\n  \"sessionId\": \"{{trigger['body']['messageGenerateReqDTO']['payload']['sessionId']}}\",\n  \"status\": 0,\n  \"emailTemplateList\": {{step_2['data']['template_structure']}}\n}"
+                        },
+                        "method": "POST",
+                        "headers": {
+                          "X-Caller": "activepieces",
+                          "Content-Type": "application/json"
+                        },
+                        "failsafe": false,
+                        "body_type": "json",
+                        "use_proxy": false,
+                        "queryParams": {},
+                        "proxy_settings": {}
+                      },
+                      "pieceName": "@activepieces/piece-http",
+                      "actionName": "send_request",
+                      "sampleData": {},
+                      "pieceVersion": "0.6.2",
+                      "propertySettings": {
+                        "url": {
+                          "type": "MANUAL"
+                        },
+                        "body": {
+                          "type": "MANUAL",
+                          "schema": {
+                            "data": {
+                              "type": "JSON",
+                              "required": true,
+                              "displayName": "JSON Body"
+                            }
+                          }
+                        },
+                        "method": {
+                          "type": "MANUAL"
+                        },
+                        "headers": {
+                          "type": "MANUAL"
+                        },
+                        "timeout": {
+                          "type": "MANUAL"
+                        },
+                        "failsafe": {
+                          "type": "MANUAL"
+                        },
+                        "body_type": {
+                          "type": "MANUAL"
+                        },
+                        "use_proxy": {
+                          "type": "MANUAL"
+                        },
+                        "queryParams": {
+                          "type": "MANUAL"
+                        },
+                        "proxy_settings": {
+                          "type": "MANUAL",
+                          "schema": {}
+                        }
+                      },
+                      "errorHandlingOptions": {
+                        "retryOnFailure": {
+                          "value": false
+                        },
+                        "continueOnFailure": {
+                          "value": false
+                        }
+                      }
+                    },
+                    "nextAction": {
+                      "name": "step_8",
+                      "skip": true,
+                      "type": "PIECE",
+                      "valid": true,
+                      "settings": {
+                        "input": {
+                          "url": "http://111.229.132.67/api/v2/flow/previewEmailTemplate",
+                          "body": {
+                            "data": {
+                              "step": 1,
+                              "status": 0,
+                              "userId": "113",
+                              "sessionId": "bec29db0-a970-4fe2-4ac0-55a88eda3d2a",
+                              "conversationId": "ZusBkKukTK4a",
+                              "emailTemplateList": [
+                                {
+                                  "type": 1,
+                                  "content": "Hi {{Target_Name}},\n\nHope this email finds you well.",
+                                  "sectionId": 1,
+                                  "description": "开场问候"
+                                },
+                                {
+                                  "type": 2,
+                                  "content": "策略：在 {{Target_Company}} 的官网、LinkedIn 和最近新闻中寻找与毛绒玩具或宠物玩具相关的线索（如新品发布、季节系列、渠道布局）。用一句定制化开场，认可他们近期的亮点，并自然过渡到我们擅长定制与快速打样（依据KB），避免空泛寒暄。",
+                                  "sectionId": 2,
+                                  "description": "破冰策略（千人千面）"
+                                },
+                                {
+                                  "type": 1,
+                                  "content": "I’m {{My_Name}}, {{My_Title}} at YANGZHOU KEDI TOYS CO., LTD. We are a plush toy and pet toy manufacturer with over 20 years of experience, specializing in custom services. We mainly export to the European and USA markets and provide a one-stop service from proofing to delivery. Our sample room is staffed by experienced designers to ensure quick sample provision.",
+                                  "sectionId": 3,
+                                  "description": "公司与能力介绍（严格基于KB）"
+                                },
+                                {
+                                  "type": 1,
+                                  "content": "To support your quality and compliance needs, we have passed Walmart Audit, Merlin Store Audit, and Sedex Audit, and hold GRS and ISO9001 certificates.",
+                                  "sectionId": 4,
+                                  "description": "合规与资质背书（严格基于KB）"
+                                },
+                                {
+                                  "type": 2,
+                                  "content": "策略：根据 {{Target_Company}} 的业务类型做差异化陈述：若面向大型零售，突出我们已通过 Walmart、Merlin Store、Sedex 审核（见KB）；若强调可持续，突出我们持有 GRS 证书（见KB）；若主打自有品牌/电商，强调我们的一站式服务和定制能力（见KB）。将这些点与对方的渠道或受众画像做一一映射。",
+                                  "sectionId": 5,
+                                  "description": "相关性对齐（千人千面）"
+                                },
+                                {
+                                  "type": 1,
+                                  "content": "If you are currently sourcing plush or pet toys, we can support with customized development. Could we schedule a brief call next week to discuss your requirements? Please feel free to share your basic specifications or artwork, and we will arrange sample development accordingly. You can also learn more about us at https://www.keditoy.com.",
+                                  "sectionId": 6,
+                                  "description": "需求引导与CTA（严格基于KB）"
+                                },
+                                {
+                                  "type": 2,
+                                  "content": "策略：根据对方公开信息提出2-3个高针对性的需求澄清问题（例如预计上市时间、目标市场区域、是否有社会责任审核要求）。确保每个问题与我们的一站式服务、快速打样或已通过的审核/证书（见KB）存在直接关联，避免询问不在KB内的技术细节。",
+                                  "sectionId": 7,
+                                  "description": "需求澄清问题（千人千面）"
+                                },
+                                {
+                                  "type": 1,
+                                  "content": "Thank you for your time and consideration.\n\nBest regards,\n{{My_Name}}\n{{My_Title}}\nYANGZHOU KEDI TOYS CO., LTD.\nWebsite: https://www.keditoy.com",
+                                  "sectionId": 8,
+                                  "description": "礼貌收尾与签名（严格基于KB）"
+                                },
+                                {
+                                  "type": 2,
+                                  "content": "策略：若3–5天未回复，发送简短跟进邮件，引用对方一个具体点（官网品类/新闻），并用一句话重申我们已通过的审核或证书与其渠道要求的契合（见KB），附上网站链接，保持语气简洁礼貌。",
+                                  "sectionId": 9,
+                                  "description": "跟进邮件策略（千人千面）"
+                                }
+                              ]
+                            }
+                          },
+                          "method": "POST",
+                          "headers": {
+                            "X-Caller": "activepieces",
+                            "Content-Type": "application/json"
+                          },
+                          "failsafe": false,
+                          "body_type": "json",
+                          "use_proxy": false,
+                          "queryParams": {},
+                          "proxy_settings": {}
+                        },
+                        "pieceName": "@activepieces/piece-http",
+                        "actionName": "send_request",
+                        "sampleData": {},
+                        "pieceVersion": "0.6.2",
+                        "propertySettings": {
+                          "url": {
+                            "type": "MANUAL"
+                          },
+                          "body": {
+                            "type": "MANUAL",
+                            "schema": {
+                              "data": {
+                                "type": "JSON",
+                                "required": true,
+                                "displayName": "JSON Body"
+                              }
+                            }
+                          },
+                          "method": {
+                            "type": "MANUAL"
+                          },
+                          "headers": {
+                            "type": "MANUAL"
+                          },
+                          "timeout": {
+                            "type": "MANUAL"
+                          },
+                          "failsafe": {
+                            "type": "MANUAL"
+                          },
+                          "body_type": {
+                            "type": "MANUAL"
+                          },
+                          "use_proxy": {
+                            "type": "MANUAL"
+                          },
+                          "queryParams": {
+                            "type": "MANUAL"
+                          },
+                          "proxy_settings": {
+                            "type": "MANUAL",
+                            "schema": {}
+                          }
+                        },
+                        "errorHandlingOptions": {
+                          "retryOnFailure": {
+                            "value": false
+                          },
+                          "continueOnFailure": {
+                            "value": false
+                          }
+                        }
+                      },
+                      "nextAction": {
+                        "name": "step_55",
+                        "skip": false,
+                        "type": "PIECE",
+                        "valid": true,
+                        "settings": {
+                          "input": {},
+                          "pieceName": "@activepieces/piece-flow-helper",
+                          "actionName": "stopFlow",
+                          "sampleData": {},
+                          "pieceVersion": "0.0.10",
+                          "propertySettings": {},
+                          "errorHandlingOptions": {
+                            "retryOnFailure": {
+                              "value": false
+                            },
+                            "continueOnFailure": {
+                              "value": false
+                            }
+                          }
+                        },
+                        "displayName": "Stop Flow"
+                      },
+                      "displayName": "返回前端 Copy"
+                    },
+                    "displayName": "返回前端"
+                  },
+                  "displayName": "模板生成"
+                },
+                "displayName": "提示词"
+              },
+              "displayName": "卖方信息"
+            },
+            "displayName": "Send HTTP request Copy Copy"
+          },
+          "displayName": "查询模版对应的版本"
+        },
+        "displayName": "模版查询sql"
+      }
+    },
+    "valid": true,
+    "agentIds": [],
+    "connectionIds": [
+      "xEIAN9RbU6OO2UNnrR3yT"
+    ],
+    "schemaVersion": "7"
+  },
+  "blogUrl": ""
+}

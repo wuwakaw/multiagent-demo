@@ -1,0 +1,19 @@
+autogen-agentchat
+autogen-ext[openai,azure]
+openai>=1.6.0
+python-dotenv>=1.0.0
+
+camel-ai
+
+# CrewAI 多智能体框架（包含工具支持）
+crewai[tools]>=0.80.0
+
+# LangGraph 多智能体框架
+langgraph>=0.2.0
+langchain>=0.3.0
+langchain-openai>=0.2.0
+langchain-core>=0.3.0
+
+# Activepieces 工作流实现所需依赖
+pymysql>=1.1.0
+requests>=2.31.0
